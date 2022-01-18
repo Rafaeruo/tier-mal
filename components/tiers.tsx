@@ -4,17 +4,19 @@ import Tier from "./tier";
 import styles from "../styles/Tiers.module.css";
 import { DragDropContext } from "react-beautiful-dnd";
 
-const Tiers = () => {
+const Tiers = ({ username }: { username: string }) => {
   const [data, setData] = useState<Array<Anime[]>>([]);
 
   useEffect(() => {
     const getData = async () => {
-      const response = await fetch("/api/list/rafaerux").then((r) => r.json());
+      const response = await fetch(`/api/list/${username}`).then((r) =>
+        r.json()
+      );
       const sorted = sortLists(response.data);
       setData(sorted);
     };
     getData();
-  }, []);
+  }, [username]);
 
   function onDragEnd(result: any) {
     if (!result.destination) {
@@ -85,4 +87,4 @@ function getIndexFromLabel(label: string) {
   return label.charCodeAt(0) - 65;
 }
 
-export default Tiers;
+export default React.memo(Tiers);
