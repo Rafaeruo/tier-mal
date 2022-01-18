@@ -1,9 +1,15 @@
 .tier {
   display: flex;
   gap: 10px;
+  width: 100%;
 }
 
 .list {
   display: flex;
-  gap: 5px;
+  overflow-x: auto;
+  width: 100%;
+}
+
+.img {
+  padding: 0 2.5px !important;
 }
