@@ -2,89 +2,111 @@ import React, { useEffect, useState } from "react";
 import { Anime } from "../types/list";
 import Tier from "./tier";
 import styles from "../styles/Tiers.module.css";
-import { DragDropContext } from "react-beautiful-dnd";
+import { DragDropContext, DropResult } from "react-beautiful-dnd";
+
+const mapping: TierScoreMapping = {
+  A: 9,
+  B: 7,
+  C: 5,
+  D: 3,
+  E: 1,
+};
 
 const Tiers = ({ username }: { username: string }) => {
-  const [data, setData] = useState<Array<Anime[]>>([]);
+  const [tiers, setTiers] = useState<Tiers>({});
 
   useEffect(() => {
-    const getData = async () => {
+    const fetchAnime = async () => {
       const response = await fetch(`/api/list/${username}`).then((r) =>
         r.json()
       );
-      const sorted = sortLists(response.data);
-      setData(sorted);
+      console.log(response.data);
+      setTiers(mapAnimeToTiers(response.data));
     };
-    getData();
+    fetchAnime();
   }, [username]);
 
-  function onDragEnd(result: any) {
+  function onDragEnd(result: DropResult) {
     if (!result.destination) {
       return;
     }
 
+    // same tier
     if (result.destination.droppableId === result.source.droppableId) {
       if (result.destination.index === result.source.index) return;
 
-      const listIndex = getIndexFromLabel(result.destination.droppableId);
-      const newList = [...data[listIndex]];
-      const anime = newList[result.source.index];
-      newList.splice(result.source.index, 1);
-      newList.splice(result.destination.index, 0, anime);
+      const tier = result.destination.droppableId;
+      const newTier = [...tiers[tier]];
 
-      const newData = [...data];
-      newData[listIndex] = newList;
-      setData(newData);
+      const target = newTier[result.source.index];
+      newTier.splice(result.source.index, 1);
+      newTier.splice(result.destination.index, 0, target);
+
+      const newTiers = {
+        ...tiers,
+        [tier]: newTier,
+      };
+      setTiers(newTiers);
       return;
     }
 
-    const destinationIdx = getIndexFromLabel(result.destination.droppableId);
-    const sourceIdx = getIndexFromLabel(result.source.droppableId);
+    // different tiers
+    const sourceTier = result.source.droppableId;
+    const destinationTier = result.destination.droppableId;
 
-    const destination = [...data[destinationIdx]];
-    const source = [...data[sourceIdx]];
+    const newSource = [...tiers[sourceTier]];
+    const newDestination = [...tiers[destinationTier]];
 
-    const anime = source[result.source.index];
-    source.splice(result.source.index, 1);
+    const target = newSource[result.source.index];
+    newSource.splice(result.source.index, 1);
+    newDestination.splice(result.destination.index, 0, target);
 
-    destination.splice(result.destination.index, 0, anime);
-
-    const newData = [...data];
-    newData[destinationIdx] = destination;
-    newData[sourceIdx] = source;
-    setData(newData);
+    const newTiers = {
+      ...tiers,
+      [sourceTier]: newSource,
+      [destinationTier]: newDestination,
+    };
+    setTiers(newTiers);
   }
 
   return (
     <div className={styles.list}>
       <DragDropContext onDragEnd={onDragEnd}>
-        {data?.map((tier, i) => (
-          <React.Fragment key={tier[0].node.title}>
-            <Tier list={tier} index={i}></Tier>
-          </React.Fragment>
-        ))}
+        {Object.keys(tiers)?.map((key, i) => {
+          const tier = tiers[key];
+          return (
+            <React.Fragment key={key}>
+              <Tier list={tier} label={key}></Tier>
+            </React.Fragment>
+          );
+        })}
       </DragDropContext>
     </div>
   );
 };
 
-function sortLists(list: Anime[]): Array<Anime[]> {
-  const result: Array<Anime[]> = [];
-  let lastScore: number;
-  list.forEach((anime) => {
-    if (anime.list_status.score !== lastScore) {
-      result.push([anime]);
-      lastScore = anime.list_status.score;
-    } else {
-      result[result.length - 1].push(anime);
+function mapAnimeToTiers(list: Anime[]): Tiers {
+  const result: { [key: string]: Anime[] } = {};
+  let idx = 0;
+
+  Object.keys(mapping).forEach((key) => {
+    result[key] = [];
+    let anime = list[idx];
+    while (mapping[key] <= anime.list_status.score) {
+      result[key].push(anime);
+      idx += 1;
+      anime = list[idx];
     }
   });
 
   return result;
 }
+interface Tiers {
+  [key: string]: Anime[];
+}
 
-function getIndexFromLabel(label: string) {
-  return label.charCodeAt(0) - 65;
+interface TierScoreMapping {
+  [key: string]: number;
 }
 
 export default React.memo(Tiers);

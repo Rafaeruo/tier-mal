@@ -4,16 +4,12 @@ import styles from "../styles/Tier.module.css";
 import { useEffect, useState } from "react";
 import { Draggable, Droppable } from "react-beautiful-dnd";
 
-const Tier = ({ list, index }: { list: Anime[]; index: number }) => {
-  const [label, setLabel] = useState<string>("");
-  useEffect(() => {
-    setLabel(getLabel(index));
-  }, [index]);
+const Tier = ({ list, label }: { list: Anime[]; label: string }) => {
   return (
     <div className={styles.tier}>
-      <div>{label}</div>
+      <div className={styles.label}>{label}</div>
 
-      <Droppable droppableId={label || index.toString()} direction="horizontal">
+      <Droppable droppableId={label} direction="horizontal">
         {(provided) => (
           <div
             ref={provided.innerRef}
@@ -52,9 +48,5 @@ const Tier = ({ list, index }: { list: Anime[]; index: number }) => {
     </div>
   );
 };
-
-function getLabel(n: number) {
-  return String.fromCharCode(65 + n);
-}
 
 export default Tier;

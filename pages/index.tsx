@@ -19,9 +19,11 @@ const Home: NextPage = () => {
         <h1>Tier MAL</h1>
 
         <input
+          className={styles.input}
           type="text"
           value={input}
           onChange={(e) => setUsername(e.target.value)}
+          placeholder="username"
         />
 
         <Tiers username={username}></Tiers>
