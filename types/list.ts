@@ -15,6 +15,7 @@ export interface AnimeNode {
 export interface AnimeListStatus {
   status: Status;
   score: number;
+  newScore?: number;
   num_episodes_watched: number;
   is_rewatching: boolean;
   updated_at: string;

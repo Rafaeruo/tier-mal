@@ -58,6 +58,12 @@ const Tiers = ({ username }: { username: string }) => {
     const newDestination = [...tiers[destinationTier]];
 
     const target = newSource[result.source.index];
+    //register score change to update later
+    target.list_status.newScore =
+      mapping[destinationTier] === target.list_status.score
+        ? undefined
+        : mapping[destinationTier]; //+gap?
+
     newSource.splice(result.source.index, 1);
     newDestination.splice(result.destination.index, 0, target);
 
@@ -92,7 +98,12 @@ function mapAnimeToTiers(list: Anime[]): Tiers {
   Object.keys(mapping).forEach((key) => {
     result[key] = [];
     let anime = list[idx];
-    while (mapping[key] <= anime.list_status.score) {
+    while (
+      mapping[key] <=
+      (anime.list_status.newScore === undefined
+        ? anime.list_status.score
+        : anime.list_status.newScore)
+    ) {
       result[key].push(anime);
       idx += 1;
       anime = list[idx];
