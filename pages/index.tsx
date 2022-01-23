@@ -1,11 +1,14 @@
 import type { NextPage } from "next";
 import Head from "next/head";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Tiers from "../components/tiers";
 import styles from "../styles/Home.module.css";
+import { useRouter } from "next/router";
 
 const Home: NextPage = () => {
-  const [username, input, setUsername] = useUsername("", 1000);
+  const { query } = useRouter();
+  let usernameParam = typeof query.u !== "string" || !query.u ? "" : query.u;
+  const [username, input, setUsername] = useUsername(usernameParam, 1000);
 
   return (
     <div>
@@ -49,6 +52,12 @@ function useUsername(
     if (currentTimeout) clearTimeout(currentTimeout);
     setCurrentTimeout(timeout);
   }
+
+  //update state on prop change
+  useEffect(() => {
+    setInput(value);
+    setUsername(value);
+  }, [value]);
 
   return [username, input, onUsernameChange];
 }

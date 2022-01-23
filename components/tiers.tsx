@@ -16,6 +16,8 @@ const Tiers = ({ username }: { username: string }) => {
   const [tiers, setTiers] = useState<Tiers>({});
 
   useEffect(() => {
+    if (!username) return;
+
     const fetchAnime = async () => {
       const response = await fetch(`/api/list/${username}`).then((r) =>
         r.json()
